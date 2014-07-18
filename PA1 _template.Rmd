@@ -1,0 +1,117 @@
+R markdown written for Reproducible reaserach assignment 1
+
+# Peer Assignment 1
+
+### 1. Read data into R
+
+```{r readdata}
+activity<-read.table("./activity.csv", sep=",", header=TRUE)
+head(activity)
+```
+
+Next let us plot histogram of total steps taken per day
+
+### 1. Histogram od steps per day
+
+```{r, histograms}
+library(ggplot2)
+Tsteps <- tapply(activity$steps, activity$date, FUN=sum, na.rm=TRUE)
+qplot(Tsteps, binwidth=800, xlab="Total number of steps taken per day", main="Histograms of Total number of steps")
+```
+
+### 2. Mean and Median of Steps
+```{r mean}
+mean(Tsteps, na.rm=TRUE)
+median(Tsteps, na.rm=TRUE)
+
+```
+
+## Average activity pattern 
+
+### 1. Average daily activity pattern
+
+```{r time_series-plot}
+library(ggplot2)
+average<- aggregate(x=list(s=activity$steps), by=list(i=activity$interval), FUN=mean, na.rm=TRUE)
+ggplot(data=average, aes(x=i, y=s)) +
+        geom_line() +
+        xlab("5 minute interval") +
+        ylab("average number of steps ") + 
+        ggtitle("Average daily activity pattern for 5 min interval")
+```
+
+### 2. The maximum average number of steps taken on 
+```{r maximum}
+average[which.max(average$s),]
+```
+
+## Imputting missing values
+
+### 1. Total # of missing values
+```{r missing_values}
+missing <- is.na(activity$steps)
+# Number of missing values Table
+table(missing)
+```
+
+
+
+Missing values will be filled in with mean value for that 5-minute
+interval.
+
+```{r}
+# Replace each missing value with the mean value of its 5-minute interval
+fill <- function(s, i) {
+        filled <- NA
+        if (!is.na(s))
+                filled <- c(s)
+        else
+                filled <- (average[average$i==i, "s"])
+        return(filled)
+        }
+# make a new data set form the activity data set and substitute the missing values
+new_activity <- activity
+new_activity$steps <- mapply(fill, new_activity$steps, new_activity$interval)
+head(new_activity)
+```
+
+### Histogram of total number of steps taken each day
+
+```{r, total_steps}
+total.steps <- tapply(new_activity$steps, new_activity$date, FUN=sum)
+qplot(total.steps, binwidth=800, xlab="Total number of steps taken each day")
+mean(total.steps)
+median(total.steps)
+```
+The mean and median of the current data set is diffrent from the origional data set. Both mean and median are higher. For any NA score values, on the previous analysis the values were set to zero. But now when we replace the NA values with the mean values of each interval, the mean and median of the intervals tend to be higher. 
+
+
+## Activity paterns
+
+### 1. Create a new factor variable
+
+```{r new_variable_week}
+week <- function(date) {
+        day <- weekdays(date)
+        if (day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+                return("weekday")
+        else if (day %in% c("Saturday", "Sunday"))
+                return("weekend")
+        else
+                stop("invalid date")
+        }
+new_activity$date <- as.Date(new_activity$date)
+new_activity$day <- sapply(new_activity$date, FUN=week)
+## tabulate the day variable
+table(new_activity$day)
+```
+### 2. make panel plot of 5-minuite interval averaged over weekdays or weekends
+
+```{r plot}
+averages <- aggregate(steps ~ interval + day, data=new_activity, mean)
+ggplot(averages, aes(interval, steps)) + geom_line() + facet_grid(day ~ .) +
+        xlab("5-minute interval") + ylab("Average number of steps") + ggtitle("Average number of steps on 5-minute interval")
+```
+
+
+
