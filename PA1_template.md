@@ -7,22 +7,17 @@ R markdown written for Reproducible reaserach assignment 1
 
 ```r
 activity<-read.table("./activity.csv", sep=",", header=TRUE)
-```
-
-```
-## Warning: cannot open file './activity.csv': No such file or directory
-```
-
-```
-## Error: cannot open the connection
-```
-
-```r
 head(activity)
 ```
 
 ```
-## Error: object 'activity' not found
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
 ```
 
 Next let us plot histogram of total steps taken per day
@@ -33,19 +28,10 @@ Next let us plot histogram of total steps taken per day
 ```r
 library(ggplot2)
 Tsteps <- tapply(activity$steps, activity$date, FUN=sum, na.rm=TRUE)
-```
-
-```
-## Error: object 'activity' not found
-```
-
-```r
 qplot(Tsteps, binwidth=800, xlab="Total number of steps taken per day", main="Histograms of Total number of steps")
 ```
 
-```
-## Error: object 'Tsteps' not found
-```
+![plot of chunk histograms](figure/histograms.png) 
 
 ### 2. Mean and Median of Steps
 
@@ -54,7 +40,7 @@ mean(Tsteps, na.rm=TRUE)
 ```
 
 ```
-## Error: object 'Tsteps' not found
+## [1] 9354
 ```
 
 ```r
@@ -62,7 +48,7 @@ median(Tsteps, na.rm=TRUE)
 ```
 
 ```
-## Error: object 'Tsteps' not found
+## [1] 10395
 ```
 
 ## Average activity pattern 
@@ -73,13 +59,6 @@ median(Tsteps, na.rm=TRUE)
 ```r
 library(ggplot2)
 average<- aggregate(x=list(s=activity$steps), by=list(i=activity$interval), FUN=mean, na.rm=TRUE)
-```
-
-```
-## Error: object 'activity' not found
-```
-
-```r
 ggplot(data=average, aes(x=i, y=s)) +
         geom_line() +
         xlab("5 minute interval") +
@@ -87,9 +66,7 @@ ggplot(data=average, aes(x=i, y=s)) +
         ggtitle("Average daily activity pattern for 5 min interval")
 ```
 
-```
-## Error: object 'average' not found
-```
+![plot of chunk time_series-plot](figure/time_series-plot.png) 
 
 ### 2. The maximum average number of steps taken on 
 
@@ -98,7 +75,8 @@ average[which.max(average$s),]
 ```
 
 ```
-## Error: object 'average' not found
+##       i     s
+## 104 835 206.2
 ```
 
 ## Imputting missing values
@@ -107,19 +85,14 @@ average[which.max(average$s),]
 
 ```r
 missing <- is.na(activity$steps)
-```
-
-```
-## Error: object 'activity' not found
-```
-
-```r
 # Number of missing values Table
 table(missing)
 ```
 
 ```
-## Error: unique() applies only to vectors
+## missing
+## FALSE  TRUE 
+## 15264  2304
 ```
 
 
@@ -140,26 +113,18 @@ fill <- function(s, i) {
         }
 # make a new data set form the activity data set and substitute the missing values
 new_activity <- activity
-```
-
-```
-## Error: object 'activity' not found
-```
-
-```r
 new_activity$steps <- mapply(fill, new_activity$steps, new_activity$interval)
-```
-
-```
-## Error: object 'new_activity' not found
-```
-
-```r
 head(new_activity)
 ```
 
 ```
-## Error: object 'new_activity' not found
+##     steps       date interval
+## 1 1.71698 2012-10-01        0
+## 2 0.33962 2012-10-01        5
+## 3 0.13208 2012-10-01       10
+## 4 0.15094 2012-10-01       15
+## 5 0.07547 2012-10-01       20
+## 6 2.09434 2012-10-01       25
 ```
 
 ### Histogram of total number of steps taken each day
@@ -167,26 +132,17 @@ head(new_activity)
 
 ```r
 total.steps <- tapply(new_activity$steps, new_activity$date, FUN=sum)
-```
-
-```
-## Error: object 'new_activity' not found
-```
-
-```r
 qplot(total.steps, binwidth=800, xlab="Total number of steps taken each day")
 ```
 
-```
-## Error: object 'total.steps' not found
-```
+![plot of chunk total_steps](figure/total_steps.png) 
 
 ```r
 mean(total.steps)
 ```
 
 ```
-## Error: object 'total.steps' not found
+## [1] 10766
 ```
 
 ```r
@@ -194,7 +150,7 @@ median(total.steps)
 ```
 
 ```
-## Error: object 'total.steps' not found
+## [1] 10766
 ```
 The mean and median of the current data set is diffrent from the origional data set. Both mean and median are higher. For any NA score values, on the previous analysis the values were set to zero. But now when we replace the NA values with the mean values of each interval, the mean and median of the intervals tend to be higher. 
 
@@ -215,47 +171,26 @@ week <- function(date) {
                 stop("invalid date")
         }
 new_activity$date <- as.Date(new_activity$date)
-```
-
-```
-## Error: object 'new_activity' not found
-```
-
-```r
 new_activity$day <- sapply(new_activity$date, FUN=week)
-```
-
-```
-## Error: object 'new_activity' not found
-```
-
-```r
 ## tabulate the day variable
 table(new_activity$day)
 ```
 
 ```
-## Error: object 'new_activity' not found
+## 
+## weekday weekend 
+##   12960    4608
 ```
 ### 2. make panel plot of 5-minuite interval averaged over weekdays or weekends
 
 
 ```r
 averages <- aggregate(steps ~ interval + day, data=new_activity, mean)
-```
-
-```
-## Error: object 'new_activity' not found
-```
-
-```r
 ggplot(averages, aes(interval, steps)) + geom_line() + facet_grid(day ~ .) +
         xlab("5-minute interval") + ylab("Average number of steps") + ggtitle("Average number of steps on 5-minute interval")
 ```
 
-```
-## Error: object 'averages' not found
-```
+![plot of chunk plot](figure/plot.png) 
 
 
 
